@@ -35,36 +35,6 @@ public class Jogo implements Screen {
         btnSetaE = new Texture("setaEsquerda.png");
         btnSetaD = new Texture("setaDireita.png");
 
-        /*fotoSetaE = new TextureRegionDrawable(new TextureRegion(new Texture("setaEsquerda.png")));
-        fotoSetaE.setMinWidth(largura/12);
-        fotoSetaE.setMinHeight(largura/12);
-
-        fotoSetaD = new TextureRegionDrawable(new TextureRegion(new Texture("setaDireita.png")));
-        fotoSetaD.setMinWidth(largura/4);
-        fotoSetaD.setMinHeight(largura/4);*/
-
-        /*btnSetaE = new ImageButton(fotoSetaE);
-
-        btnSetaD = new ImageButton(fotoSetaD);
-
-        stage = new Stage();
-        Gdx.input.setInputProcessor(stage);
-
-        btnSetaE.setPosition(largura/40, largura/40);
-        btnSetaE.setWidth(largura/12);
-        btnSetaE.setHeight(largura/12);
-
-        btnE = new AnalizarSeTocou(largura/12, largura/12, largura/40, largura/40, altura);
-
-        stage.addActor(btnSetaE);
-
-        btnSetaD.setPosition(largura/40 + largura/12 + largura/16, largura/40);
-        btnSetaD.setWidth(largura/12);
-        btnSetaD.setHeight(largura/12);
-
-        btnD = new AnalizarSeTocou(largura/12, largura/12, largura/40 + largura/12 + largura/16, largura/40, altura);
-
-        stage.addActor(btnSetaD);*/
         btnE = new AnalizarSeTocou(largura/12, largura/12, largura/40, largura/40, altura);
         btnD = new AnalizarSeTocou(largura/12, largura/12, largura/40 + largura/12 + largura/16, largura/40, altura);
     }
@@ -89,8 +59,6 @@ public class Jogo implements Screen {
         batch.draw(btnSetaE, largura/40, largura/40, largura/12, largura/12);
         batch.draw(btnSetaD, largura/40 + largura/12 + largura/16, largura/40, largura/12, largura/12);
         batch.end();
-        /*stage.act(Gdx.graphics.getDeltaTime());
-        stage.draw();*/
     }
 
     @Override
