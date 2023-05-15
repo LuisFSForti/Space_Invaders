@@ -55,7 +55,9 @@ public class Controlador extends Game {
                     trocarParaJogo();
                 else {
                     jogo.render(60);
-                    if (jogo.getEstado() == "acabou")
+                    if (jogo.getEstado() == "morreu")
+                        estado = "pontuacao";
+                    if (jogo.getEstado() == "venceu")
                         estado = "pontuacao";
                 }
 
