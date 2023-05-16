@@ -18,25 +18,29 @@ public class Inimigo {
         this.tamanhoY = tY;
         this.largura = largura;
         this.altura = altura;
-        variacao = largura/1000;
+        variacao = largura/750;
         this.vida = vida;
         if(vida == 1)
             foto = new Texture("inimigo.png");
     }
 
-    public boolean andar()
+    public int andar()
     {
         posicaoX += variacao;
-        if(posicaoX > largura - 80 - tamanhoX || posicaoX < 80)
-            return true;
 
-        return false;
+        if(posicaoY < (float)(altura / 15.0 + largura / 16))
+            return 2;
+
+        if(posicaoX > largura - largura / 24 - tamanhoX || posicaoX < largura / 24)
+            return 1;
+
+        return 0;
     }
 
     public void alternar()
     {
         variacao *= -1;
-        posicaoY -= altura / 60;
+        posicaoY -= altura / 30;
     }
 
     public void mudarVelocidade(float mudanca)

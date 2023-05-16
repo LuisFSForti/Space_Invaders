@@ -9,6 +9,7 @@ public class Controlador extends Game {
     private String estado;
     private MenuPrincipal menuPrincipal;
     private Jogo jogo;
+    private Pontuacao pontuacao;
     int largura, altura;
 
     @Override
@@ -22,6 +23,7 @@ public class Controlador extends Game {
     void trocarParaMenu()
     {
         jogo = null;
+        pontuacao = null;
         menuPrincipal = new MenuPrincipal();
         menuPrincipal.resize(largura, altura);
         setScreen(menuPrincipal);
@@ -30,9 +32,25 @@ public class Controlador extends Game {
     void trocarParaJogo()
     {
         menuPrincipal = null;
+        pontuacao = null;
         jogo = new Jogo();
         jogo.resize(largura, altura);
         setScreen(jogo);
+    }
+    void trocarParaPontuacao()
+    {
+        menuPrincipal = null;
+        pontuacao = new Pontuacao();
+        pontuacao.resize(largura, altura);
+        pontuacao.setPontuacao(jogo.getPontuacao());
+        jogo = null;
+        setScreen(pontuacao);
+        switch (estado)
+        {
+            case "pontuacao1": pontuacao.setMensagem("Você morreu!"); break;
+            case "pontuacao2": pontuacao.setMensagem("A Terra foi invadida!"); break;
+            case "pontuacao3": pontuacao.setMensagem("Você ganhou!"); break;
+        }
     }
 
     @Override
@@ -55,14 +73,28 @@ public class Controlador extends Game {
                     trocarParaJogo();
                 else {
                     jogo.render(60);
+                    if(jogo.getEstado() == "reiniciar")
+                        trocarParaJogo();
                     if (jogo.getEstado() == "morreu")
-                        estado = "pontuacao";
+                        estado = "pontuacao1";
+                    if(jogo.getEstado() == "perdeu")
+                        estado = "pontuacao2";
                     if (jogo.getEstado() == "venceu")
-                        estado = "pontuacao";
+                        estado = "pontuacao3";
                 }
 
                 break;
-            case "pontuacao":
+            case "pontuacao1":
+            case "pontuacao2":
+            case "pontuacao3":
+                if(pontuacao == null)
+                    trocarParaPontuacao();
+                else {
+                    pontuacao.render(60);
+                    if(pontuacao.getEstado() == "sair")
+                        estado = "menuPrincipal";
+                }
+                break;
             case "instrucoes":
 
             default:

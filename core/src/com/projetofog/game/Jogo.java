@@ -4,12 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.LinkedList;
@@ -18,30 +15,38 @@ public class Jogo implements Screen {
     private String estado;
     float largura, altura;
     private SpriteBatch batch;
-    private Stage stage;
-    private Texture fundo, btnSetaE, btnSetaD, btnMira;
+    private Texture fundo, btnSetaE, btnSetaD, btnMira, btnPause, btnContinuar, btnReiniciar;
     private Jogador naveJ;
-    private AnalizarSeTocou btnE, btnD, btnM;
+    private AnalizarSeTocou btnE, btnD, btnM, btnP, btnC, btnR;
     private float tempo, ultimoTiroJ, ultimoTiroI;
     private LinkedList<Tiro> tiros;
     private LinkedList<Inimigo> inimigos;
+    private int pontuacao;
+    private BitmapFont scoreboard;
+    private GlyphLayout layout;
 
     @Override
     public void show() {
-        estado = "nada";
+        estado = "jogando";
         batch = new SpriteBatch();
-        stage = new Stage();
 
         fundo = new Texture("space.jpg");
 
         btnSetaE = new Texture("setaEsquerda.png");
         btnSetaD = new Texture("setaDireita.png");
-
         btnMira = new Texture("mira.png");
+
+        btnPause = new Texture("pause.png");
+        btnContinuar = new Texture("continuar.png");
+        btnReiniciar = new Texture("reiniciar.png");
 
         btnE = new AnalizarSeTocou(largura/12, largura/12, largura/40, largura/40, altura);
         btnD = new AnalizarSeTocou(largura/12, largura/12, largura/40 + largura/12 + largura/16, largura/40, altura);
         btnM = new AnalizarSeTocou(largura/11, largura/11, largura - (largura/40 + largura/11), largura/40, altura);
+
+        btnP = new AnalizarSeTocou(largura/33, largura/33, largura - (largura/40 + largura/33), altura - largura / 33 - largura / 40, altura);
+        btnC = new AnalizarSeTocou(largura/12, largura/12, largura / 2 + largura / 24, altura / 2 - largura/24, altura);
+        btnR = new AnalizarSeTocou(largura/12, largura/12, largura / 2 - largura / 12 - largura/24, altura / 2 - largura/24, altura);
 
         tempo = 0;
         ultimoTiroJ = 0;
@@ -69,94 +74,126 @@ public class Jogo implements Screen {
             }
             posicaoY -= variacaoY;
         }
+
+        pontuacao = 0;
+
+        scoreboard = new BitmapFont();
+        scoreboard.setColor(1,1,1,1);
+        scoreboard.getData().setScale(largura / 500);
+        layout = new GlyphLayout();
     }
 
     @Override
     public void render(float delta) {
-        naveJ.aumentarX();
-        tempo++;
+        if (btnP.tocou())
+            estado = "pausado";
 
-        if (btnD.tocou() || Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-            naveJ.setVariacao(largura / 150);
-        else if (btnE.tocou() || Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT))
-            naveJ.setVariacao(-largura / 150);
-        else
-            naveJ.setVariacao(0);
-
-        if (btnM.tocou() || Gdx.input.isKeyPressed(Input.Keys.SPACE))
-            if (ultimoTiroJ <= tempo) {
-                ultimoTiroJ = tempo + 60;
-                tiros.add(new Tiro(naveJ.getX() + naveJ.getTamanho() / 2, naveJ.getY() + naveJ.getTamanho(), 'j', altura));
-            }
-
-        ScreenUtils.clear(0, 0, 0, 1);
-        batch.begin();
-        batch.draw(fundo, 0, 0, largura, altura);
-
-        naveJ.desenhar(batch);
-
-        boolean alternar = false;
-        for (int i = 0; i < tiros.size(); i++) {
-            tiros.get(i).desenhar(batch);
-            int res = tiros.get(i).tocouEmAlgo(naveJ, inimigos);
-            if (res == -1)
-                tiros.remove(i);
-            else if (res == -2) {
-                naveJ.mudarVida(-1);
-                tiros.remove(i);
-            }
-            else if (res != -3) {
-                inimigos.get(res).mudarVida(-1);
-                tiros.remove(i);
-                alternar = true;
-            }
-        }
-
-        if(alternar)
-            for (int i = 0; i < inimigos.size(); i++) {
-                inimigos.get(i).mudarVelocidade((float)(15 - inimigos.size())/(float)55);
-            }
-
-        alternar = false;
-
-        if(ultimoTiroI < tempo)
+        if(estado == "pausado")
         {
-            ultimoTiroI += Math.random() * 150 + 30;
-            int quantidade = 1;
+            batch.begin();
+            batch.draw(btnContinuar, largura / 2 + largura / 24, altura / 2 - largura/24, largura / 12, largura / 12);
+            batch.draw(btnReiniciar, largura / 2 - largura / 12 - largura/24, altura / 2 - largura/24, largura / 12, largura / 12);
+            batch.end();
 
-            if(inimigos.size() > 30)
-                quantidade = 3;
-            else if(inimigos.size() > 15)
-                quantidade = 2;
-
-            for(int i = 0; i < quantidade; i++)
-                inimigos.get((int)(Math.random() * inimigos.size())).atirar(tiros);
+            if(btnC.tocou())
+                estado = "jogando";
+            if(btnR.tocou())
+                estado = "reiniciar";
         }
-        for (int i = 0; i < inimigos.size(); i++) {
-            if(inimigos.get(i).estaVivo()) {
-                if (inimigos.get(i).andar()) {
+        else if (estado == "jogando") {
+            naveJ.aumentarX();
+            tempo++;
+
+            if (btnD.tocou() || Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT))
+                naveJ.setVariacao(largura / 150);
+            else if (btnE.tocou() || Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT))
+                naveJ.setVariacao(-largura / 150);
+            else
+                naveJ.setVariacao(0);
+
+            if (btnM.tocou() || Gdx.input.isKeyPressed(Input.Keys.SPACE))
+                if (ultimoTiroJ <= tempo) {
+                    ultimoTiroJ = tempo + 60;
+                    tiros.add(new Tiro(naveJ.getX() + naveJ.getTamanho() / 2, naveJ.getY() + naveJ.getTamanho(), 'j', altura));
+                }
+
+            ScreenUtils.clear(0, 0, 0, 1);
+            batch.begin();
+            batch.draw(fundo, 0, 0, largura, altura);
+
+            naveJ.desenhar(batch);
+
+            boolean alternar = false;
+            for (int i = 0; i < tiros.size(); i++) {
+                tiros.get(i).desenhar(batch);
+                int res = tiros.get(i).tocouEmAlgo(naveJ, inimigos);
+                if (res == -1)
+                    tiros.remove(i);
+                else if (res == -2) {
+                    naveJ.mudarVida(-1);
+                    tiros.remove(i);
+                } else if (res != -3) {
+                    inimigos.get(res).mudarVida(-1);
+                    tiros.remove(i);
                     alternar = true;
                 }
-                inimigos.get(i).desenhar(batch);
             }
-            else
-                inimigos.remove(i);
+
+            if (alternar)
+                for (int i = 0; i < inimigos.size(); i++) {
+                    inimigos.get(i).mudarVelocidade((float) (15 - inimigos.size()) / (float) 55);
+                }
+
+            alternar = false;
+
+            if (ultimoTiroI < tempo) {
+                ultimoTiroI += Math.random() * 150 + 30;
+                int quantidade = 1;
+
+                if (inimigos.size() > 30)
+                    quantidade = 3;
+                else if (inimigos.size() > 15)
+                    quantidade = 2;
+
+                for (int i = 0; i < quantidade; i++)
+                    inimigos.get((int) (Math.random() * inimigos.size())).atirar(tiros);
+            }
+            for (int i = 0; i < inimigos.size(); i++) {
+                if (inimigos.get(i).estaVivo()) {
+                    int res = inimigos.get(i).andar();
+                    if (res == 1) {
+                        alternar = true;
+                    } else if (res == 2) {
+                        estado = "perdeu";
+                        break;
+                    }
+                    inimigos.get(i).desenhar(batch);
+                } else {
+                    pontuacao += Math.pow(inimigos.get(i).getY(), 4) / (Math.pow(altura,3));
+                    inimigos.remove(i);
+                }
+            }
+            if (alternar)
+                for (int j = 0; j < inimigos.size(); j++) {
+                    inimigos.get(j).alternar();
+                }
+
+            batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
+            batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
+            batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
+            batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
+
+            String texto = "Score: " + pontuacao;
+            layout.setText(scoreboard, texto);
+            scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
+
+            batch.end();
+
+            if (inimigos.size() == 0)
+                estado = "venceu";
+            if (!naveJ.estaVivo())
+                estado = "morreu";
         }
-        if(alternar)
-            for (int j = 0; j < inimigos.size(); j++) {
-                inimigos.get(j).alternar();
-            }
-
-        batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
-        batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
-        batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
-
-        batch.end();
-
-        if(inimigos.size() == 0)
-            estado = "venceu";
-        if(!naveJ.estaVivo())
-            estado = "morreu";
     }
 
     @Override
@@ -188,5 +225,10 @@ public class Jogo implements Screen {
     public String getEstado()
     {
         return estado;
+    }
+
+    public int getPontuacao()
+    {
+        return pontuacao;
     }
 }
