@@ -240,7 +240,7 @@ public class Jogo implements Screen {
                 acertou = true;
 
                 if(!inimigos.get(res).estaVivo()) {
-                    float variacaoPontos = (float) (Math.pow(inimigos.get(i).getY(), 4) / (Math.pow(altura, 3)));
+                    float variacaoPontos = (float) (Math.pow(inimigos.get(res).getY(), 4) / (Math.pow(altura, 3)));
                     pontuacao += variacaoPontos + variacaoPontos * Math.pow(valorFase, 2);
                     inimigos.remove(res);
                 }

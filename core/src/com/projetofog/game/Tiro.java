@@ -36,7 +36,7 @@ public class Tiro {
                 if(inimigos.get(i).getX() < posicaoX && posicaoX < (inimigos.get(i).getX() + inimigos.get(i).getTamanhoX()))
                 {
                     if(inimigos.get(i).getY() < posicaoY && posicaoY < (inimigos.get(i).getY() + inimigos.get(i).getTamanhoY()))
-                        return i; //Deletar o inimigo
+                        return i; //Ferir o inimigo
                 }
             }
 
