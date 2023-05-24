@@ -13,16 +13,16 @@ import java.util.LinkedList;
 
 public class Jogo implements Screen {
     private String estado;
-    float largura, altura;
+    private float largura, altura;
     private SpriteBatch batch;
     private Texture fundo, btnSetaE, btnSetaD, btnMira, btnPause, btnContinuar, btnReiniciar;
     private Jogador naveJ;
     private AnalizarSeTocou btnE, btnD, btnM, btnP, btnC, btnR;
-    private float tempo, ultimoTiroJ, ultimoTiroI;
+    private float tempo, ultimoTiroJ, ultimoTiroI, valorFase;
     private LinkedList<Tiro> tiros;
     private LinkedList<Inimigo> inimigos;
-    private int pontuacao;
-    private BitmapFont scoreboard;
+    private int pontuacao, fase;
+    private BitmapFont scoreboard, anunciador;
     private GlyphLayout layout;
 
     @Override
@@ -48,6 +48,27 @@ public class Jogo implements Screen {
         btnC = new AnalizarSeTocou(largura/12, largura/12, largura / 2 + largura / 24, altura / 2 - largura/24, altura);
         btnR = new AnalizarSeTocou(largura/12, largura/12, largura / 2 - largura / 12 - largura/24, altura / 2 - largura/24, altura);
 
+        pontuacao = 0;
+
+        fase = 0;
+
+        valorFase = 1;
+
+        scoreboard = new BitmapFont();
+        scoreboard.setColor(1,1,1,1);
+        scoreboard.getData().setScale(largura / 500);
+        anunciador = new BitmapFont();
+        anunciador.setColor(1,1,1,1);
+        anunciador.getData().setScale(largura / 300);
+        layout = new GlyphLayout();
+
+        passarFase();
+    }
+
+    private void passarFase()
+    {
+        fase++;
+
         tempo = 0;
         ultimoTiroJ = 0;
         ultimoTiroI = 60;
@@ -57,8 +78,6 @@ public class Jogo implements Screen {
 
         float variacaoY = ((altura - altura/6) - altura/2) / 5;
         float tamanho = variacaoY - variacaoY / 20;
-
-        naveJ = new Jogador(largura, altura);
 
         float posicaoX;
         float posicaoY = altura - altura / 6;
@@ -75,16 +94,59 @@ public class Jogo implements Screen {
             posicaoY -= variacaoY;
         }
 
-        pontuacao = 0;
+        if(fase == 1)
+            naveJ = new Jogador(largura, altura);
 
-        scoreboard = new BitmapFont();
-        scoreboard.setColor(1,1,1,1);
-        scoreboard.getData().setScale(largura / 500);
-        layout = new GlyphLayout();
+        naveJ.mudarVida(1);
+
+        if(fase == 2)
+            valorFase = (float) (1/11);
+        else
+            valorFase = (float) (Math.pow((float)(Math.log(fase)),2)) - 1;
+
+        if(fase == 2)
+            for (int i = 0; i < inimigos.size(); i++)
+                inimigos.get(i).mudarVelocidade(valorFase);
+        else
+            for (int i = 0; i < inimigos.size(); i++)
+                inimigos.get(i).mudarVelocidade(valorFase);
+
+        estado = "esperando";
     }
 
     @Override
     public void render(float delta) {
+        if(estado == "esperando") {
+            ScreenUtils.clear(0, 0, 0, 1);
+            batch.begin();
+            batch.draw(fundo, 0, 0, largura, altura);
+
+            naveJ.desenhar(batch);
+
+            for (int i = 0; i < inimigos.size(); i++)
+                inimigos.get(i).desenhar(batch);
+
+            batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
+            batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
+            batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
+            batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
+
+            String texto = "Score: " + pontuacao;
+            layout.setText(scoreboard, texto);
+            scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
+
+            texto = "Fase " + fase;
+            layout.setText(anunciador, texto);
+            anunciador.draw(batch, texto, largura / 2 - layout.width / 2, altura/2 - layout.height / 2);
+
+            batch.end();
+            tempo++;
+            if (tempo == 60) {
+                tempo = 0;
+                estado = "jogando";
+            }
+        }
+
         if (btnP.tocou())
             estado = "pausado";
 
@@ -113,7 +175,7 @@ public class Jogo implements Screen {
 
             if (btnM.tocou() || Gdx.input.isKeyPressed(Input.Keys.SPACE))
                 if (ultimoTiroJ <= tempo) {
-                    ultimoTiroJ = tempo + 60;
+                    ultimoTiroJ = tempo + 30;
                     tiros.add(new Tiro(naveJ.getX() + naveJ.getTamanho() / 2, naveJ.getY() + naveJ.getTamanho(), 'j', altura));
                 }
 
@@ -169,7 +231,8 @@ public class Jogo implements Screen {
                     }
                     inimigos.get(i).desenhar(batch);
                 } else {
-                    pontuacao += Math.pow(inimigos.get(i).getY(), 4) / (Math.pow(altura,3));
+                    float variacaoPontos = (float) (Math.pow(inimigos.get(i).getY(), 4) / (Math.pow(altura,3)));
+                    pontuacao +=  variacaoPontos + variacaoPontos * Math.pow(valorFase, 2);
                     inimigos.remove(i);
                 }
             }
@@ -190,7 +253,7 @@ public class Jogo implements Screen {
             batch.end();
 
             if (inimigos.size() == 0)
-                estado = "venceu";
+                passarFase();
             if (!naveJ.estaVivo())
                 estado = "morreu";
         }
@@ -227,6 +290,10 @@ public class Jogo implements Screen {
         return estado;
     }
 
+    public void setPontuacao(int p)
+    {
+        pontuacao = p;
+    }
     public int getPontuacao()
     {
         return pontuacao;

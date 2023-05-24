@@ -26,8 +26,8 @@ public class MenuPrincipal implements Screen {
         btnJogar = new Texture("jogar.png");
         btnComoJogar = new Texture("comojogar.png");
 
-        btnJ = new AnalizarSeTocou(largura/4, largura/16, largura/2 - largura/8, altura/2 - altura/8, altura);
-        btnC = new AnalizarSeTocou(largura/4, largura/16, largura/2 - largura/8, altura/2 - altura/3, altura);
+        btnJ = new AnalizarSeTocou(altura/2, altura/8, largura/2 - altura/4, altura/2 - altura/8, altura);
+        btnC = new AnalizarSeTocou(altura/2, altura/8, largura/2 - altura/4, altura/2 - altura/3, altura);
     }
 
     @Override
@@ -35,9 +35,9 @@ public class MenuPrincipal implements Screen {
         ScreenUtils.clear(0, 0, 0, 1);
         batch.begin();
         batch.draw(fundo, 0, 0, largura, altura);
-        batch.draw(titulo, largura/2 - largura/6, altura/2, largura/3, largura/3);
-        batch.draw(btnJogar, largura/2 - largura/8, altura/2 - altura / 8, largura/4, largura/16);
-        batch.draw(btnComoJogar, largura/2 - largura/8, altura/2 - altura / 3, largura/4, largura/16);
+        batch.draw(titulo, largura/2 - altura/3, altura/2 - altura/30, 2 * altura/3, 2 * altura/3);
+        batch.draw(btnJogar, largura/2 - altura/4, altura/2 - altura / 8, altura/2, altura/8);
+        batch.draw(btnComoJogar, largura/2 - altura/4, altura/2 - altura / 3, altura/2, altura/8);
         batch.end();
 
         if(btnJ.tocou())

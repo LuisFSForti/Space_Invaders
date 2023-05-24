@@ -17,7 +17,7 @@ public class Tiro {
         this.posicaoY = pY;
         this.posicaoX = pX;
         this.tipo = tipo;
-        this.variacao = altura / 100;
+        this.variacao = altura / 50;
         if(tipo == 'j')
             foto = new Texture("laserJogador.png");
         else
@@ -44,7 +44,7 @@ public class Tiro {
         }
         else
         {
-            posicaoY -= variacao;
+            posicaoY -= variacao / 2;
             if(naveJ.getX() < posicaoX && posicaoX < (naveJ.getX() + naveJ.getTamanho()))
             {
                 if(posicaoY < (naveJ.getY() + naveJ.getTamanho()))

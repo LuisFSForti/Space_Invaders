@@ -15,7 +15,7 @@ public class Jogador {
         this.tamanho = largura / 16;
         this.posicaoX = largura/2 - tamanho/2;
         this.posicaoY = largura / 30;
-        this.vida = 3;
+        this.vida = 2;
         this.altura = altura;
     }
 
