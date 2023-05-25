@@ -3,6 +3,7 @@ package com.projetofog.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -24,6 +25,7 @@ public class Jogo implements Screen {
     private int pontuacao, fase;
     private BitmapFont scoreboard, anunciador;
     private GlyphLayout layout;
+    private Music intro, loop;
 
     @Override
     public void show() {
@@ -63,6 +65,20 @@ public class Jogo implements Screen {
         layout = new GlyphLayout();
 
         passarFase();
+        intro = Gdx.audio.newMusic(Gdx.files.internal("intro.ogg"));
+        intro.setVolume(0.2F);
+        intro.play();
+        intro.setLooping(false);
+        intro.setOnCompletionListener(new Music.OnCompletionListener(){
+            @Override
+            public void onCompletion(Music a){
+                loop.play();
+            }
+        });
+
+        loop = Gdx.audio.newMusic(Gdx.files.internal("loop.ogg"));
+        loop.setVolume(0.2F);
+        loop.setLooping(true);
     }
 
     private void passarFase()
@@ -225,7 +241,7 @@ public class Jogo implements Screen {
 
     private void manipularTiros()
     {
-        boolean acertou = false;
+        boolean matou = false;
         for (int i = 0; i < tiros.size(); i++) {
             tiros.get(i).desenhar(batch);
             int res = tiros.get(i).tocouEmAlgo(naveJ, inimigos);
@@ -237,16 +253,16 @@ public class Jogo implements Screen {
             } else if (res != -3) {
                 inimigos.get(res).mudarVida(-1);
                 tiros.remove(i);
-                acertou = true;
 
                 if(!inimigos.get(res).estaVivo()) {
                     float variacaoPontos = (float) (Math.pow(inimigos.get(res).getY(), 4) / (Math.pow(altura, 3)));
                     pontuacao += variacaoPontos + variacaoPontos * Math.pow(valorFase, 2);
                     inimigos.remove(res);
+                    matou = true;
                 }
             }
         }
-        if (acertou)
+        if (matou)
             for (int i = 0; i < inimigos.size(); i++) {
                 inimigos.get(i).mudarVelocidade((float) (15 - inimigos.size()) / (float) 55);
             }
@@ -303,7 +319,8 @@ public class Jogo implements Screen {
 
     @Override
     public void hide() {
-
+        intro.stop();
+        loop.stop();
     }
 
     @Override
@@ -314,11 +331,6 @@ public class Jogo implements Screen {
     public String getEstado()
     {
         return estado;
-    }
-
-    public void setPontuacao(int p)
-    {
-        pontuacao = p;
     }
     public int getPontuacao()
     {
