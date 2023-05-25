@@ -22,6 +22,7 @@ public class Jogo implements Screen {
     private float tempo, ultimoTiroJ, ultimoTiroI, valorFase;
     private LinkedList<Tiro> tiros;
     private LinkedList<Inimigo> inimigos;
+    private LinkedList<Explosao> explosoes;
     private int pontuacao, fase;
     private BitmapFont scoreboard, anunciador;
     private GlyphLayout layout;
@@ -91,6 +92,7 @@ public class Jogo implements Screen {
 
         tiros = new LinkedList<>();
         inimigos = new LinkedList<>();
+        explosoes = new LinkedList<>();
 
         float variacaoY = ((altura - altura/6) - altura/2) / 5;
         float tamanho = variacaoY - variacaoY / 20;
@@ -120,12 +122,8 @@ public class Jogo implements Screen {
         else
             valorFase = (float) (Math.pow((float)(Math.log(fase)),2)) - 1;
 
-        if(fase == 2)
-            for (int i = 0; i < inimigos.size(); i++)
-                inimigos.get(i).mudarVelocidade(valorFase);
-        else
-            for (int i = 0; i < inimigos.size(); i++)
-                inimigos.get(i).mudarVelocidade(valorFase);
+        for (Inimigo atual: inimigos)
+            atual.mudarVelocidade(valorFase);
 
         estado = "esperando";
     }
@@ -158,6 +156,8 @@ public class Jogo implements Screen {
 
             manipularInimigos();
 
+            animarExplosoes();
+
             batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
             batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
             batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
@@ -184,8 +184,8 @@ public class Jogo implements Screen {
 
         naveJ.desenhar(batch);
 
-        for (int i = 0; i < inimigos.size(); i++)
-            inimigos.get(i).desenhar(batch);
+        for (Inimigo atual: inimigos)
+            atual.desenhar(batch);
 
         batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
         batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
@@ -242,33 +242,40 @@ public class Jogo implements Screen {
     private void manipularTiros()
     {
         boolean matou = false;
-        for (int i = 0; i < tiros.size(); i++) {
-            tiros.get(i).desenhar(batch);
-            int res = tiros.get(i).tocouEmAlgo(naveJ, inimigos);
-            if (res == -1)
-                tiros.remove(i);
+        for (Tiro atual: tiros) {
+            atual.desenhar(batch);
+            int res = atual.tocouEmAlgo(naveJ, inimigos);
+            if (res == -1) {
+                tiros.remove(atual);
+                break;
+            }
             else if (res == -2) {
                 naveJ.mudarVida(-1);
-                tiros.remove(i);
+                tiros.remove(atual);
+                break;
             } else if (res != -3) {
                 inimigos.get(res).mudarVida(-1);
-                tiros.remove(i);
+                tiros.remove(atual);
 
                 if(!inimigos.get(res).estaVivo()) {
                     float variacaoPontos = (float) (Math.pow(inimigos.get(res).getY(), 4) / (Math.pow(altura, 3)));
                     pontuacao += variacaoPontos + variacaoPontos * Math.pow(valorFase, 2);
+
+                    explosoes.add(new Explosao(inimigos.get(res).getX(), inimigos.get(res).getY()));
+
                     inimigos.remove(res);
                     matou = true;
                 }
+                break;
             }
         }
         if (matou)
-            for (int i = 0; i < inimigos.size(); i++) {
-                inimigos.get(i).mudarVelocidade((float) (15 - inimigos.size()) / (float) 55);
+            for (Inimigo atual: inimigos) {
+                atual.mudarVelocidade((float) (15 - inimigos.size()) / (float) 55);
             }
     }
 
-    public void manipularInimigos()
+    private void manipularInimigos()
     {
         boolean alternar = false;
 
@@ -284,8 +291,8 @@ public class Jogo implements Screen {
             for (int i = 0; i < quantidade; i++)
                 inimigos.get((int) (Math.random() * inimigos.size())).atirar(tiros);
         }
-        for (int i = 0; i < inimigos.size(); i++) {
-            int res = inimigos.get(i).andar();
+        for (Inimigo atual: inimigos) {
+            int res = atual.andar();
 
             if (res == 1) {
                 alternar = true;
@@ -293,12 +300,24 @@ public class Jogo implements Screen {
                 estado = "perdeu";
                 break;
             }
-            inimigos.get(i).desenhar(batch);
+            atual.desenhar(batch);
         }
         if (alternar)
-            for (int j = 0; j < inimigos.size(); j++) {
-                inimigos.get(j).alternar();
+            for (Inimigo atualA: inimigos) {
+                atualA.alternar();
             }
+    }
+
+    private void animarExplosoes()
+    {
+        for(Explosao atual: explosoes)
+        {
+            if(!atual.animar(batch))
+            {
+                explosoes.remove(atual);
+                break;
+            }
+        }
     }
 
     @Override
