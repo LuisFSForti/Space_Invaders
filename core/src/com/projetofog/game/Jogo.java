@@ -133,7 +133,18 @@ public class Jogo implements Screen {
         if(estado == "esperando") {
             anunciarFase();
         }
-
+        if(estado == "morrendo")
+        {
+            if(explosoes.size() == 0)
+            {
+                estado = "jogando";
+                naveJ.reiniciarPosicao();
+                intro.play();
+            }
+            else {
+                desenharSemAlterar(false);
+            }
+        }
         if (btnP.tocou())
             estado = "pausado";
 
@@ -142,38 +153,78 @@ public class Jogo implements Screen {
             carregarPause();
         }
         else if (estado == "jogando") {
-            tempo++;
+            if (inimigos.size() == 0) {
+                if (explosoes.size() == 0)
+                    passarFase();
+                else
+                {
+                    desenharSemAlterar(true);
+                }
+            }
+            else if (!naveJ.estaVivo()) {
+                    estado = "morreu";
+            }
+            else {
+                tempo++;
 
-            controlarJogador();
+                controlarJogador();
 
-            ScreenUtils.clear(0, 0, 0, 1);
-            batch.begin();
-            batch.draw(fundo, 0, 0, largura, altura);
+                ScreenUtils.clear(0, 0, 0, 1);
+                batch.begin();
+                batch.draw(fundo, 0, 0, largura, altura);
 
-            naveJ.desenhar(batch);
+                naveJ.desenharNave(batch);
+                naveJ.desenharVida(batch);
 
-            manipularTiros();
+                manipularTiros();
 
-            manipularInimigos();
+                manipularInimigos();
 
-            animarExplosoes();
+                animarExplosoes();
 
-            batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
-            batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
-            batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
-            batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
+                batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
+                batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
+                batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
+                batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
 
-            String texto = "Score: " + pontuacao;
-            layout.setText(scoreboard, texto);
-            scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
+                String texto = "Score: " + pontuacao;
+                layout.setText(scoreboard, texto);
+                scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
 
-            batch.end();
-
-            if (inimigos.size() == 0)
-                passarFase();
-            if (!naveJ.estaVivo())
-                estado = "morreu";
+                batch.end();
+            }
         }
+    }
+
+    private void desenharSemAlterar(boolean comNave)
+    {
+        ScreenUtils.clear(0, 0, 0, 1);
+        batch.begin();
+        batch.draw(fundo, 0, 0, largura, altura);
+
+        if(comNave)
+            naveJ.desenharNave(batch);
+
+        naveJ.desenharVida(batch);
+
+        for (Tiro atual : tiros)
+            atual.desenhar(batch);
+
+        for (Inimigo atual : inimigos)
+            atual.desenhar(batch);
+
+        animarExplosoes();
+
+        batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
+        batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
+        batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
+        batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
+
+        String texto = "Score: " + pontuacao;
+        layout.setText(scoreboard, texto);
+        scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
+
+        batch.end();
     }
 
     private void anunciarFase()
@@ -182,7 +233,8 @@ public class Jogo implements Screen {
         batch.begin();
         batch.draw(fundo, 0, 0, largura, altura);
 
-        naveJ.desenhar(batch);
+        naveJ.desenharNave(batch);
+        naveJ.desenharVida(batch);
 
         for (Inimigo atual: inimigos)
             atual.desenhar(batch);
@@ -252,6 +304,13 @@ public class Jogo implements Screen {
             else if (res == -2) {
                 naveJ.mudarVida(-1);
                 tiros.remove(atual);
+                explosoes.add(new Explosao(naveJ.getX(), naveJ.getY(), 60));
+                estado = "morrendo";
+                tiros = new LinkedList<>();
+                if(intro.isPlaying())
+                    intro.stop();
+                if(loop.isPlaying())
+                    loop.stop();
                 break;
             } else if (res != -3) {
                 inimigos.get(res).mudarVida(-1);
@@ -261,7 +320,7 @@ public class Jogo implements Screen {
                     float variacaoPontos = (float) (Math.pow(inimigos.get(res).getY(), 4) / (Math.pow(altura, 3)));
                     pontuacao += variacaoPontos + variacaoPontos * Math.pow(valorFase, 2);
 
-                    explosoes.add(new Explosao(inimigos.get(res).getX(), inimigos.get(res).getY()));
+                    explosoes.add(new Explosao(inimigos.get(res).getX(), inimigos.get(res).getY(), 15));
 
                     inimigos.remove(res);
                     matou = true;

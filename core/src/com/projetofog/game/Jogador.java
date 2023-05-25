@@ -2,7 +2,6 @@ package com.projetofog.game;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 public class Jogador {
     private float posicaoX,posicaoY, tamanho, variacao, altura;
@@ -14,7 +13,7 @@ public class Jogador {
         this.foto = new Texture("nave.png");
         this.tamanho = largura / 16;
         this.posicaoX = largura/2 - tamanho/2;
-        this.posicaoY = largura / 30;
+        this.posicaoY = largura / 32;
         this.vida = 2;
         this.altura = altura;
     }
@@ -32,19 +31,29 @@ public class Jogador {
             posicaoX = tamanho * 16 - (tamanho + 20);
     }
 
-    public void desenhar(Batch batch)
+    public void desenharNave(Batch batch)
     {
         batch.draw(foto, posicaoX, posicaoY, tamanho, tamanho);
+
+    }
+    public void desenharVida(Batch batch)
+    {
         float posicao = tamanho / 20;
         for(int i = 0; i < vida; i++) {
-            batch.draw(foto, posicao, altura - tamanho / 20 - tamanho / 3, tamanho / 3, tamanho / 3);
-            posicao += tamanho / 3;
+            batch.draw(foto, posicao, altura - tamanho / 20 - tamanho / 2, tamanho / 2, tamanho / 2);
+            posicao += tamanho / 2 * 1.1F;
         }
     }
 
     public void mudarVida(int mudanca)
     {
         vida += mudanca;
+    }
+
+    public void reiniciarPosicao()
+    {
+        this.posicaoX = tamanho * 8 - tamanho/2;
+        this.posicaoY = tamanho / 2;
     }
 
     public float getX()
