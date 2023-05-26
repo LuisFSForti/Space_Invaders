@@ -7,10 +7,10 @@ import java.util.LinkedList;
 
 public class Inimigo {
     private float posicaoX, posicaoY, tamanhoX, tamanhoY, largura, altura, variacao;
-    private int vida;
+    private int vida, tipo;
     private Texture foto;
 
-    public Inimigo(float pX, float pY, float tX, float tY, float largura, float altura, int vida)
+    public Inimigo(float pX, float pY, float tX, float tY, float largura, float altura, int tipo)
     {
         this.posicaoX = pX;
         this.posicaoY = pY;
@@ -19,28 +19,43 @@ public class Inimigo {
         this.largura = largura;
         this.altura = altura;
         variacao = largura/750;
-        this.vida = vida;
-        if(vida == 1)
+        this.vida = 1;
+        this.tipo = tipo;
+        if(this.tipo == 1) {
             foto = new Texture("inimigo.png");
+        }
+        else
+            foto = new Texture("inimigoG.png");
     }
 
     public int andar()
     {
-        posicaoX += variacao;
+        if(tipo == 1) {
+            posicaoX += variacao;
 
-        if(posicaoY < (float)(altura / 15.0 + largura / 16))
-            return 2;
+            if (posicaoY < (float) (altura / 15.0 + largura / 16))
+                return 2;
 
-        if(posicaoX > largura - largura / 24 - tamanhoX || posicaoX < largura / 24)
-            return 1;
+            if (posicaoX > largura - largura / 24 - tamanhoX || posicaoX < largura / 24)
+                return 1;
+        }
+        else
+        {
+            posicaoX += variacao * 2;
+
+            if (posicaoX > largura + tamanhoX)
+                return 3;
+        }
 
         return 0;
     }
 
     public void alternar()
     {
-        variacao *= -1;
-        posicaoY -= altura / 30;
+        if(tipo == 1) {
+            posicaoY -= altura / 30;
+            variacao *= -1;
+        }
     }
 
     public void mudarVelocidade(float mudanca)

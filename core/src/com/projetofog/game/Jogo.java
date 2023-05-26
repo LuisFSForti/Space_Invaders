@@ -19,7 +19,7 @@ public class Jogo implements Screen {
     private Texture fundo, btnSetaE, btnSetaD, btnMira, btnPause, btnContinuar, btnReiniciar;
     private Jogador naveJ;
     private AnalizarSeTocou btnE, btnD, btnM, btnP, btnC, btnR;
-    private float tempo, ultimoTiroJ, ultimoTiroI, valorFase;
+    private float tempo, ultimoTiroJ, ultimoTiroI, cdNaveG, valorFase;
     private LinkedList<Tiro> tiros;
     private LinkedList<Inimigo> inimigos;
     private LinkedList<Explosao> explosoes;
@@ -87,6 +87,7 @@ public class Jogo implements Screen {
         fase++;
 
         tempo = 0;
+        cdNaveG = (float)Math.random() * 300 + 300;
         ultimoTiroJ = 0;
         ultimoTiroI = 60;
 
@@ -338,6 +339,12 @@ public class Jogo implements Screen {
     {
         boolean alternar = false;
 
+        if(tempo > cdNaveG)
+        {
+            inimigos.add(new Inimigo(-largura/15, altura - largura/15, largura/15, largura/15 * 51/75, largura, altura, 2));
+            cdNaveG = tempo + (float)Math.random() * 500 + 500;
+        }
+
         if (ultimoTiroI < tempo) {
             ultimoTiroI += Math.random() * 150 + 30;
             int quantidade = 1;
@@ -346,6 +353,8 @@ public class Jogo implements Screen {
                 quantidade = 3;
             else if (inimigos.size() > 15)
                 quantidade = 2;
+            else if(inimigos.size() == 0)
+                quantidade = 0;
 
             for (int i = 0; i < quantidade; i++)
                 inimigos.get((int) (Math.random() * inimigos.size())).atirar(tiros);
@@ -359,7 +368,12 @@ public class Jogo implements Screen {
                 estado = "perdeu";
                 break;
             }
-            atual.desenhar(batch);
+            else if(res == 3)
+            {
+                inimigos.remove(atual);
+            }
+            if(res != 3)
+                atual.desenhar(batch);
         }
         if (alternar)
             for (Inimigo atualA: inimigos) {
