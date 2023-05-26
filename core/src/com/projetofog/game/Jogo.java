@@ -102,12 +102,20 @@ public class Jogo implements Screen {
         float posicaoY = altura - altura / 6;
         float variacaoX = (largura - largura / 3 + tamanho) / 11;
 
+        int qtdTanques = 0;
+
         for(int i = 0; i < 5; i++)
         {
             posicaoX = 200;
             for(int j = 0; j < 11; j++)
             {
-                inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 1));
+                if(i > 2 && Math.random() * fase < (float)Math.pow(fase, 1.1)/3.0F && qtdTanques < fase + (int)Math.log(fase)) {
+                    inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 3));
+                    qtdTanques++;
+                }
+                else
+                    inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 1));
+
                 posicaoX += variacaoX;
             }
             posicaoY -= variacaoY;
@@ -119,9 +127,9 @@ public class Jogo implements Screen {
         naveJ.mudarVida(1);
 
         if(fase == 2)
-            valorFase = (float) (1/11);
+            valorFase = (float) (1/33);
         else
-            valorFase = (float) (Math.pow((float)(Math.log(fase)),2)) - 1;
+            valorFase = ((float) (Math.pow((float)(Math.log(fase)),2)) - 1) / 3;
 
         for (Inimigo atual: inimigos)
             atual.mudarVelocidade(valorFase);
@@ -295,27 +303,31 @@ public class Jogo implements Screen {
     private void manipularTiros()
     {
         boolean matou = false;
+        int tiroASerRemovido = -1;
         for (Tiro atual: tiros) {
             atual.desenhar(batch);
             int res = atual.tocouEmAlgo(naveJ, inimigos);
             if (res == -1) {
-                tiros.remove(atual);
-                break;
+                tiroASerRemovido = tiros.indexOf(atual);
             }
             else if (res == -2) {
                 naveJ.mudarVida(-1);
-                tiros.remove(atual);
-                explosoes.add(new Explosao(naveJ.getX(), naveJ.getY(), 60));
                 estado = "morrendo";
                 tiros = new LinkedList<>();
+
+                tiroASerRemovido = -1;
+                explosoes.add(new Explosao(naveJ.getX(), naveJ.getY(), 60));
+
                 if(intro.isPlaying())
                     intro.stop();
                 if(loop.isPlaying())
                     loop.stop();
+
                 break;
             } else if (res != -3) {
                 inimigos.get(res).mudarVida(-1);
-                tiros.remove(atual);
+
+                tiroASerRemovido = tiros.indexOf(atual);
 
                 if(!inimigos.get(res).estaVivo()) {
                     float variacaoPontos = (float) (Math.pow(inimigos.get(res).getY(), 4) / (Math.pow(altura, 3)));
@@ -326,9 +338,11 @@ public class Jogo implements Screen {
                     inimigos.remove(res);
                     matou = true;
                 }
-                break;
             }
         }
+        if(tiroASerRemovido > -1)
+            tiros.remove(tiroASerRemovido);
+
         if (matou)
             for (Inimigo atual: inimigos) {
                 atual.mudarVelocidade((float) (15 - inimigos.size()) / (float) 55);
@@ -341,7 +355,9 @@ public class Jogo implements Screen {
 
         if(tempo > cdNaveG)
         {
-            inimigos.add(new Inimigo(-largura/15, altura - largura/15, largura/15, largura/15 * 51/75, largura, altura, 2));
+            Inimigo bonus = new Inimigo(-largura/15, altura - largura/15, largura/15, largura/15 * 51/75, largura, altura, 2);
+            bonus.mudarVelocidade(valorFase);
+            inimigos.add(bonus);
             cdNaveG = tempo + (float)Math.random() * 500 + 500;
         }
 

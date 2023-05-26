@@ -24,13 +24,17 @@ public class Inimigo {
         if(this.tipo == 1) {
             foto = new Texture("inimigo.png");
         }
-        else
+        else if(tipo == 2)
             foto = new Texture("inimigoG.png");
+        else {
+            foto = new Texture("inimigoT.png");
+            vida = 3;
+        }
     }
 
     public int andar()
     {
-        if(tipo == 1) {
+        if(tipo != 2) {
             posicaoX += variacao;
 
             if (posicaoY < (float) (altura / 15.0 + largura / 16))
@@ -52,7 +56,7 @@ public class Inimigo {
 
     public void alternar()
     {
-        if(tipo == 1) {
+        if(tipo != 2) {
             posicaoY -= altura / 30;
             variacao *= -1;
         }
@@ -71,7 +75,9 @@ public class Inimigo {
 
     public void atirar(LinkedList<Tiro> tiros)
     {
-        tiros.add(new Tiro(posicaoX + tamanhoX / 2, posicaoY - altura / 50, 'I', altura));
+        if(tipo == 1) {
+            tiros.add(new Tiro(posicaoX + tamanhoX / 2, posicaoY - altura / 50, 'I', altura));
+        }
     }
 
     public void mudarVida(int mudanca)
