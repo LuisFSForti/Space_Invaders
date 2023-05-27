@@ -48,6 +48,8 @@ public class Jogador {
     public void mudarVida(int mudanca)
     {
         vida += mudanca;
+        if(vida > 10)
+            vida = 10;
     }
 
     public void reiniciarPosicao()

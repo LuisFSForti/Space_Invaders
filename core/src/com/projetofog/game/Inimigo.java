@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import java.util.LinkedList;
 
 public class Inimigo {
-    private float posicaoX, posicaoY, tamanhoX, tamanhoY, largura, altura, variacao;
+    private float posicaoX, posicaoY, tamanhoX, tamanhoY, largura, altura, variacao, tempoTiroAtirador;
     private int vida, tipo;
     private Texture foto;
 
@@ -26,9 +26,13 @@ public class Inimigo {
         }
         else if(tipo == 2)
             foto = new Texture("inimigoG.png");
-        else {
+        else if (tipo == 3){
             foto = new Texture("inimigoT.png");
             vida = 3;
+        }
+        else {
+            foto = new Texture("inimigoA.png");
+            tempoTiroAtirador = 0;
         }
     }
 
@@ -42,6 +46,13 @@ public class Inimigo {
 
             if (posicaoX > largura - largura / 24 - tamanhoX || posicaoX < largura / 24)
                 return 1;
+
+            if(tipo == 4)
+            {
+                tempoTiroAtirador++;
+                if(tempoTiroAtirador % 90 == 0)
+                    return 4;
+            }
         }
         else
         {
@@ -75,7 +86,7 @@ public class Inimigo {
 
     public void atirar(LinkedList<Tiro> tiros)
     {
-        if(tipo == 1) {
+        if(tipo == 1 || tipo == 4) {
             tiros.add(new Tiro(posicaoX + tamanhoX / 2, posicaoY - altura / 50, 'I', altura));
         }
     }

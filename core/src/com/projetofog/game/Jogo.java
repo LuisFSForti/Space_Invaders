@@ -103,15 +103,28 @@ public class Jogo implements Screen {
         float variacaoX = (largura - largura / 3 + tamanho) / 11;
 
         int qtdTanques = 0;
+        int qtdAtiradores = 0;
 
         for(int i = 0; i < 5; i++)
         {
             posicaoX = 200;
             for(int j = 0; j < 11; j++)
             {
-                if(i > 2 && Math.random() * fase < (float)Math.pow(fase, 1.1)/3.0F && qtdTanques < fase + (int)Math.log(fase)) {
-                    inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 3));
-                    qtdTanques++;
+                if(i > 2) {
+                    if(Math.random() * fase < (float)Math.pow(fase, 1.1)/3.0F && qtdTanques < fase + (int)Math.log(fase)) {
+                        inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 3));
+                        qtdTanques++;
+                    }
+                    else
+                        inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 1));
+                }
+                else if(i < 2) {
+                    if(Math.random() * fase < (float)fase/3.0F && qtdAtiradores < fase / 3) {
+                        inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 4));
+                        qtdAtiradores++;
+                    }
+                    else
+                        inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 1));
                 }
                 else
                     inimigos.add(new Inimigo(posicaoX, posicaoY, tamanho, tamanho, largura, altura, 1));
@@ -154,7 +167,7 @@ public class Jogo implements Screen {
                 desenharSemAlterar(false);
             }
         }
-        if (btnP.tocou())
+        if (btnP.tocou() || Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
             estado = "pausado";
 
         if(estado == "pausado")
@@ -378,16 +391,16 @@ public class Jogo implements Screen {
         for (Inimigo atual: inimigos) {
             int res = atual.andar();
 
-            if (res == 1) {
+            if (res == 1)
                 alternar = true;
-            } else if (res == 2) {
+            else if (res == 2) {
                 estado = "perdeu";
                 break;
             }
             else if(res == 3)
-            {
                 inimigos.remove(atual);
-            }
+            else if(res == 4)
+                atual.atirar(tiros);
             if(res != 3)
                 atual.desenhar(batch);
         }
