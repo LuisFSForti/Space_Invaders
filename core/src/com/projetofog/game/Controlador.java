@@ -8,6 +8,7 @@ import com.badlogic.gdx.Gdx;
 public class Controlador extends Game {
     private String estado;
     private MenuPrincipal menuPrincipal;
+    private ComoJogar comoJogar;
     private Jogo jogo;
     private Pontuacao pontuacao;
     int largura, altura;
@@ -24,9 +25,17 @@ public class Controlador extends Game {
     {
         jogo = null;
         pontuacao = null;
+        comoJogar = null;
         menuPrincipal = new MenuPrincipal();
         menuPrincipal.resize(largura, altura);
         setScreen(menuPrincipal);
+    }
+    void trocarParaComoJogar()
+    {
+        menuPrincipal = null;
+        comoJogar = new ComoJogar();
+        comoJogar.resize(largura, altura);
+        setScreen(comoJogar);
     }
 
     void trocarParaJogo()
@@ -65,7 +74,17 @@ public class Controlador extends Game {
                     if (menuPrincipal.getEstado() == "jogar")
                         estado = "jogando";
                     else if (menuPrincipal.getEstado() == "como_jogar")
-                        estado = "instrucoes";
+                        estado = "como_jogar";
+                }
+                break;
+            case "como_jogar":
+                if(comoJogar == null)
+                    trocarParaComoJogar();
+                else
+                {
+                    comoJogar.render(60);
+                    if(comoJogar.getEstado() == "sair")
+                        estado = "menuPrincipal";
                 }
                 break;
             case "jogando":
@@ -95,8 +114,6 @@ public class Controlador extends Game {
                         estado = "menuPrincipal";
                 }
                 break;
-            case "instrucoes":
-
             default:
                 exit(1);
                 break;
