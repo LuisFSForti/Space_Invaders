@@ -1,18 +1,28 @@
 package com.projetofog.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class Pontuacao implements Screen {
     private float largura, altura;
     private int pontuacao;
     private SpriteBatch batch;
-    private Texture fundo, btnSair;
-    private AnalizarSeTocou btnS;
+    private Texture fundo;
+    private Stage stage;
+    private Drawable fotoSair;
+    private ImageButton btnSair;
     private String estado, mensagem;
     private BitmapFont scoreboard;
     private GlyphLayout layout;
@@ -21,11 +31,26 @@ public class Pontuacao implements Screen {
     public void show() {
         estado = "nada";
         batch = new SpriteBatch();
+        stage = new Stage();
+        Gdx.input.setInputProcessor(stage);
 
         fundo = new Texture("space.jpg");
-        btnSair = new Texture("exit.png");
 
-        btnS = new AnalizarSeTocou(largura/8, largura/8, largura/2 - largura/16, altura/3 - altura/16, altura);
+        fotoSair = new TextureRegionDrawable(new TextureRegion((new Texture("exit.png"))));
+        fotoSair.setMinWidth(largura / 8);
+        fotoSair.setMinHeight(largura / 8);
+
+        btnSair = new ImageButton(fotoSair);
+        btnSair.setPosition(largura/2 - largura/16, altura/3 - altura / 8);
+        btnSair.addListener(new ClickListener(){
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                estado = "sair";
+                return true;
+            }
+        });
+
+        stage.addActor(btnSair);
 
         scoreboard = new BitmapFont();
         scoreboard.setColor(1,1,1,1);
@@ -46,11 +71,10 @@ public class Pontuacao implements Screen {
         layout.setText(scoreboard, texto);
         scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura / 2 + altura / 8);
 
-        batch.draw(btnSair, largura/2 - largura/16, altura/3 - altura / 8, largura/8, largura/8);
         batch.end();
 
-        if(btnS.tocou())
-            estado = "sair";
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
     }
 
     @Override

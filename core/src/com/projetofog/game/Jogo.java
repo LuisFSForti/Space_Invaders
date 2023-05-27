@@ -8,22 +8,32 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.util.EventListener;
 import java.util.LinkedList;
 
 public class Jogo implements Screen {
     private String estado;
     private float largura, altura;
     private SpriteBatch batch;
-    private Texture fundo, btnSetaE, btnSetaD, btnMira, btnPause, btnContinuar, btnReiniciar;
+    private Stage stage,stageP;
+    private Texture fundo;
     private Jogador naveJ;
-    private AnalizarSeTocou btnE, btnD, btnM, btnP, btnC, btnR;
+    private Drawable fotoSetaE, fotoSetaD, fotoMira, fotoPause, fotoContinuar, fotoReiniciar;
+    private ImageButton btnE, btnD, btnM, btnP, btnC, btnR;
     private float tempo, ultimoTiroJ, ultimoTiroI, cdNaveG, valorFase;
     private LinkedList<Tiro> tiros;
     private LinkedList<Inimigo> inimigos;
     private LinkedList<Explosao> explosoes;
-    private int pontuacao, fase;
+    private int pontuacao, fase, movimento, atirando;
     private BitmapFont scoreboard, anunciador;
     private GlyphLayout layout;
     private Music intro, loop;
@@ -33,27 +43,127 @@ public class Jogo implements Screen {
         estado = "jogando";
         batch = new SpriteBatch();
 
+        stage = new Stage();
+        stageP = new Stage();
+        Gdx.input.setInputProcessor(stage);
+
+
         fundo = new Texture("space.jpg");
 
-        btnSetaE = new Texture("setaEsquerda.png");
-        btnSetaD = new Texture("setaDireita.png");
-        btnMira = new Texture("mira.png");
+        fotoSetaE = new TextureRegionDrawable(new TextureRegion((new Texture("setaEsquerda.png"))));
+        fotoSetaE.setMinWidth(largura / 12);
+        fotoSetaE.setMinHeight(largura / 12);
 
-        btnPause = new Texture("pause.png");
-        btnContinuar = new Texture("continuar.png");
-        btnReiniciar = new Texture("reiniciar.png");
+        btnE = new ImageButton(fotoSetaE);
+        btnE.setPosition(largura/40, largura/40);
+        btnE.addListener(new ClickListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                movimento = -1;
+                return true;
+            }
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                movimento = 0;
+            }
+        });
 
-        btnE = new AnalizarSeTocou(largura/12, largura/12, largura/40, largura/40, altura);
-        btnD = new AnalizarSeTocou(largura/12, largura/12, largura/40 + largura/12 + largura/16, largura/40, altura);
-        btnM = new AnalizarSeTocou(largura/11, largura/11, largura - (largura/40 + largura/11), largura/40, altura);
+        stage.addActor(btnE);
+        System.out.println(stage.getActors());
 
-        btnP = new AnalizarSeTocou(largura/33, largura/33, largura - (largura/40 + largura/33), altura - largura / 33 - largura / 40, altura);
-        btnC = new AnalizarSeTocou(largura/12, largura/12, largura / 2 + largura / 24, altura / 2 - largura/24, altura);
-        btnR = new AnalizarSeTocou(largura/12, largura/12, largura / 2 - largura / 12 - largura/24, altura / 2 - largura/24, altura);
+        fotoSetaD = new TextureRegionDrawable(new TextureRegion((new Texture("setaDireita.png"))));
+        fotoSetaD.setMinWidth(largura / 12);
+        fotoSetaD.setMinHeight(largura / 12);
+
+        btnD = new ImageButton(fotoSetaD);
+        btnD.setPosition(largura/40 + largura / 12 + largura / 16, largura/40);
+        btnD.addListener(new ClickListener(){
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                movimento = 1;
+                return true;
+            }
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                movimento = 0;
+            }
+        });
+
+        stage.addActor(btnD);
+
+        fotoMira = new TextureRegionDrawable(new TextureRegion((new Texture("mira.png"))));
+        fotoMira.setMinWidth(largura / 11);
+        fotoMira.setMinHeight(largura / 11);
+
+        btnM = new ImageButton(fotoMira);
+        btnM.setPosition(largura - (largura / 40 + largura / 11), largura/40);
+        btnM.addListener(new ClickListener(){
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                atirando = 1;
+                return true;
+            }
+            public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                atirando = 0;
+            }
+        });
+
+        stage.addActor(btnM);
+
+        fotoPause = new TextureRegionDrawable(new TextureRegion((new Texture("pause.png"))));
+        fotoPause.setMinWidth(largura / 33);
+        fotoPause.setMinHeight(largura / 33);
+
+        btnP = new ImageButton(fotoPause);
+        btnP.setPosition(largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40);
+        btnP.addListener(new ClickListener(){
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                estado = "pausado";
+                Gdx.input.setInputProcessor(stageP);
+                return true;
+            }
+        });
+
+        stage.addActor(btnP);
+
+        fotoContinuar = new TextureRegionDrawable(new TextureRegion((new Texture("continuar.png"))));
+        fotoContinuar.setMinWidth(largura / 12);
+        fotoContinuar.setMinHeight(largura / 12);
+
+        btnC = new ImageButton(fotoContinuar);
+        btnC.setPosition(largura / 2 + largura / 24, altura / 2 - largura/24);
+        btnC.addListener(new ClickListener(){
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                estado = "jogando";
+                Gdx.input.setInputProcessor(stage);
+                return true;
+            }
+        });
+
+        stageP.addActor(btnC);
+
+        fotoReiniciar = new TextureRegionDrawable(new TextureRegion((new Texture("reiniciar.png"))));
+        fotoReiniciar.setMinWidth(largura / 12);
+        fotoReiniciar.setMinHeight(largura / 12);
+
+        btnR = new ImageButton(fotoReiniciar);
+        btnR.setPosition(largura / 2 - largura / 12 - largura/24, altura / 2 - largura/24);
+        btnR.addListener(new ClickListener(){
+            @Override
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                estado = "reiniciar";
+                return true;
+            }
+        });
+
+        stageP.addActor(btnR);
 
         pontuacao = 0;
 
         fase = 0;
+
+        movimento = 0;
+        atirando = 0;
 
         valorFase = 1;
 
@@ -167,8 +277,10 @@ public class Jogo implements Screen {
                 desenharSemAlterar(false);
             }
         }
-        if (btnP.tocou() || Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) && estado != "pausado") {
             estado = "pausado";
+            Gdx.input.setInputProcessor(stageP);
+        }
 
         if(estado == "pausado")
         {
@@ -204,16 +316,14 @@ public class Jogo implements Screen {
 
                 animarExplosoes();
 
-                batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
-                batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
-                batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
-                batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
-
                 String texto = "Score: " + pontuacao;
                 layout.setText(scoreboard, texto);
                 scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
 
                 batch.end();
+
+                stage.act(Gdx.graphics.getDeltaTime());
+                stage.draw();
             }
         }
     }
@@ -237,16 +347,13 @@ public class Jogo implements Screen {
 
         animarExplosoes();
 
-        batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
-        batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
-        batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
-        batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
-
         String texto = "Score: " + pontuacao;
         layout.setText(scoreboard, texto);
         scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
 
         batch.end();
+
+        stage.draw();
     }
 
     private void anunciarFase()
@@ -261,11 +368,6 @@ public class Jogo implements Screen {
         for (Inimigo atual: inimigos)
             atual.desenhar(batch);
 
-        batch.draw(btnSetaE, largura / 40, largura / 40, largura / 12, largura / 12);
-        batch.draw(btnSetaD, largura / 40 + largura / 12 + largura / 16, largura / 40, largura / 12, largura / 12);
-        batch.draw(btnMira, largura - (largura / 40 + largura / 11), largura / 40, largura / 11, largura / 11);
-        batch.draw(btnPause, largura - largura / 33 - largura / 40, altura - largura / 33 - largura / 40, largura / 33, largura / 33);
-
         String texto = "Score: " + pontuacao;
         layout.setText(scoreboard, texto);
         scoreboard.draw(batch, texto, largura / 2 - layout.width / 2, altura - altura / 40);
@@ -275,6 +377,8 @@ public class Jogo implements Screen {
         anunciador.draw(batch, texto, largura / 2 - layout.width / 2, altura/2 - layout.height / 2);
 
         batch.end();
+        stage.draw();
+
         tempo++;
         if (tempo == 60) {
             tempo = 0;
@@ -284,29 +388,23 @@ public class Jogo implements Screen {
 
     private void carregarPause()
     {
-        batch.begin();
-        batch.draw(btnContinuar, largura / 2 + largura / 24, altura / 2 - largura/24, largura / 12, largura / 12);
-        batch.draw(btnReiniciar, largura / 2 - largura / 12 - largura/24, altura / 2 - largura/24, largura / 12, largura / 12);
-        batch.end();
-
-        if(btnC.tocou())
-            estado = "jogando";
-        if(btnR.tocou())
-            estado = "reiniciar";
+        ScreenUtils.clear(0, 0, 0, 1);
+        stageP.act(Gdx.graphics.getDeltaTime());
+        stageP.draw();
     }
 
     private void controlarJogador()
     {
-        if (btnD.tocou() || Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT))
+        if (movimento == 1 || Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT))
             naveJ.setVariacao(largura / 150);
-        else if (btnE.tocou() || Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT))
+        else if (movimento == -1 || Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT))
             naveJ.setVariacao(-largura / 150);
         else
             naveJ.setVariacao(0);
 
         naveJ.aumentarX();
 
-        if (btnM.tocou() || Gdx.input.isKeyPressed(Input.Keys.SPACE))
+        if (atirando == 1 || Gdx.input.isKeyPressed(Input.Keys.SPACE))
             if (ultimoTiroJ <= tempo) {
                 ultimoTiroJ = tempo + 30;
                 tiros.add(new Tiro(naveJ.getX() + naveJ.getTamanho() / 2, naveJ.getY() + naveJ.getTamanho(), 'j', altura));
